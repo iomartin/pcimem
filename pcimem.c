@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 	int read_result_dupped = 0;
 	int type_width;
 	int i;
-	int map_size = 4096UL;
+	int map_size = 4096UL * 4;
 
 	if(argc < 3) {
 		// pcimem /sys/bus/pci/devices/0001\:00\:07.0/resource0 0x100 w 0x00
@@ -87,7 +87,9 @@ int main(int argc, char **argv) {
 		case 'w':
 			type_width = 4;
 			break;
-                case 'd':
+		case 'd':
+		case 'f':
+		case 'r': /* read word */
 			type_width = 8;
 			break;
 		default:
@@ -125,7 +127,8 @@ int main(int argc, char **argv) {
 		case 'w':
 			read_result = *((uint32_t *) virt_addr);
 			break;
-                case 'd':
+		case 'd':
+		case 'r':
 			read_result = *((uint64_t *) virt_addr);
 			break;
 	}
@@ -167,6 +170,17 @@ int main(int argc, char **argv) {
 			case 'd':
 				*((uint64_t *) virt_addr) = writeval;
 				read_result = *((uint64_t *) virt_addr);
+				break;
+			case 'r':
+				read_result = *((uint64_t *) virt_addr);
+				break;
+			case 'f':
+				FILE *f = fopen(argv[4], "rb");
+				int bytes = fread(virt_addr+4096, sizeof(char), 1024*1024, f);
+				printf("Read %d bytes from file %s\n", bytes, argv[4]);
+
+				*((uint32_t*) virt_addr) = bytes;
+
 				break;
 		}
 		printf("Written 0x%0*lX; readback 0x%*lX\n", type_width,

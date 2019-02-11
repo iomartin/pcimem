@@ -89,7 +89,6 @@ int main(int argc, char **argv) {
 			break;
 		case 'd':
 		case 'f':
-		case 'r': /* read word */
 			type_width = 8;
 			break;
 		default:
@@ -128,7 +127,6 @@ int main(int argc, char **argv) {
 			read_result = *((uint32_t *) virt_addr);
 			break;
 		case 'd':
-		case 'r':
 			read_result = *((uint64_t *) virt_addr);
 			break;
 	}
@@ -171,10 +169,8 @@ int main(int argc, char **argv) {
 				*((uint64_t *) virt_addr) = writeval;
 				read_result = *((uint64_t *) virt_addr);
 				break;
-			case 'r':
-				read_result = *((uint64_t *) virt_addr);
-				break;
 			case 'f':
+				writeval = 0; /* dummy, required to make the compiler happy */
 				FILE *f = fopen(argv[4], "rb");
 				int bytes = fread(virt_addr+4096, sizeof(char), 1024*1024, f);
 				printf("Read %d bytes from file %s\n", bytes, argv[4]);

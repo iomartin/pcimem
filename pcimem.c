@@ -38,7 +38,7 @@
 #define PRINT_ERROR \
 	do { \
 		fprintf(stderr, "Error at line %d, file %s (%d) [%s]\n", \
-		__LINE__, __FILE__, errno, strerror(errno)); exit(1); \
+		__LINE__, __FILE__, errno, strerror(errno)); printf("\n"); exit(1); \
 	} while(0)
 
 
@@ -89,6 +89,7 @@ int main(int argc, char **argv) {
 			break;
 		case 'd':
 		case 'f':
+		case 'm':
 			type_width = 8;
 			break;
 		default:
@@ -152,6 +153,8 @@ int main(int argc, char **argv) {
 
 	if(argc > 4) {
 		writeval = strtoull(argv[4], NULL, 0);
+		FILE *f;
+		int bytes;
 		switch(access_type) {
 			case 'b':
 				*((uint8_t *) virt_addr) = writeval;
@@ -170,12 +173,17 @@ int main(int argc, char **argv) {
 				read_result = *((uint64_t *) virt_addr);
 				break;
 			case 'f':
-				writeval = 0; /* dummy, required to make the compiler happy */
-				FILE *f = fopen(argv[4], "rb");
-				int bytes = fread(virt_addr+4096, sizeof(char), 1024*1024, f);
+				f = fopen(argv[4], "rb");
+				bytes = fread(virt_addr+4096, sizeof(char), 1024*1024, f);
 				printf("Read %d bytes from file %s\n", bytes, argv[4]);
 
 				*((uint32_t*) virt_addr) = bytes;
+
+				break;
+			case 'm':
+				f = fopen(argv[4], "rb");
+				bytes = fread(virt_addr, sizeof(char), 1024*1024, f);
+				printf("Read %d bytes from file %s\n", bytes, argv[4]);
 
 				break;
 		}
@@ -186,5 +194,6 @@ int main(int argc, char **argv) {
 
 	if(munmap(map_base, map_size) == -1) PRINT_ERROR;
     close(fd);
+    printf("\n");
     return 0;
 }
